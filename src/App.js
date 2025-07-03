@@ -318,7 +318,7 @@ useEffect(() => {
         </tr>
       </thead>
       <tbody>
-        {users.map((u, idx) => (
+         {Array.isArray(users) && users.map((u, idx) => (
           <tr key={u._id}>
             <td>{idx + 1}</td>
             <td>{u.fullname}</td>
@@ -343,7 +343,7 @@ useEffect(() => {
           </tr>
         </thead>
         <tbody>
-          {paginatedTransactions.map((t, idx) => (
+           {Array.isArray(paginatedTransactions) && paginatedTransactions.map((t, idx) => (
             <tr key={t._id || idx}>
               <td>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
               <td>{t.transactionId || t._id || '-'}</td>
@@ -431,7 +431,7 @@ useEffect(() => {
         </tr>
       </thead>
       <tbody>
-        {reviews.map((r, idx) => (
+        {Array.isArray(reviews) && reviews.map((r, idx) => (
           <tr key={r._id}>
             <td>{idx + 1}</td>
             <td>{r.user?.fullname || r.user?.email || '-'}</td>
