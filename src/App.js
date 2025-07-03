@@ -2,7 +2,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './App.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { getAllTransactions } from './api';
 import Login from './Login';
 import { FaMoneyBillWave, FaSignOutAlt } from 'react-icons/fa';
@@ -18,6 +18,7 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState('users');
+ const tableRef = useRef(null);
 const [users, setUsers] = useState([]);
 const [reviews, setReviews] = useState([]);
   const rowsPerPage = 10;
@@ -188,15 +189,18 @@ useEffect(() => {
 </div>
         {/* Thống kê tổng quan */}
 <div style={{ display: 'flex', gap: 32, marginBottom: 32, justifyContent: 'center' }}>
-  <div className="stat-card">
+  <div className="stat-card" style={{ cursor: 'pointer' }}
+    onClick={() => { setActiveTab('users'); tableRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>
     <h3 style={{ color: '#6366f1', marginBottom: 8 }}>Người dùng</h3>
     <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#22223b' }}>{stats.totalUsers}</p>
   </div>
-  <div className="stat-card">
+  <div className="stat-card" style={{ cursor: 'pointer' }}
+    onClick={() => { setActiveTab('transactions'); tableRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>
     <h3 style={{ color: '#6366f1', marginBottom: 8 }}>Giao dịch</h3>
     <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#22223b' }}>{stats.totalTransactions}</p>
   </div>
-  <div className="stat-card">
+  <div className="stat-card" style={{ cursor: 'pointer' }}
+    onClick={() => { setActiveTab('reviews'); tableRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>
     <h3 style={{ color: '#6366f1', marginBottom: 8 }}>Đánh giá</h3>
     <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#22223b' }}>{stats.totalEvaluations}</p>
   </div>
@@ -307,6 +311,14 @@ useEffect(() => {
   padding: 20,
   marginBottom: 32
 }}>
+  <div ref={tableRef} style={{
+  overflowX: 'auto',
+  background: '#fff',
+  borderRadius: 16,
+  boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+  padding: 20,
+  marginBottom: 32
+}}></div>
   {activeTab === 'users' && (
     <table className="dashboard-table">
       <thead>
