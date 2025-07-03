@@ -37,6 +37,7 @@
   }
 }
 
+
 .custom-month-picker {
   width: 240px;
   height: 54px;
@@ -137,7 +138,8 @@
     line-height: 18px;
     font-size: 10px;
   }
-  .stat-card {
+ 
+.stat-card {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(99,102,241,0.10);
@@ -153,5 +155,22 @@
   font-size: 2.5rem;
   font-weight: bold;
   color: #22223b;
+}
+.tab, .tab-active {
+  padding: 12px 32px;
+  border: none;
+  background: #e0e7ff;
+  color: #6366f1;
+  font-weight: 600;
+  font-size: 18px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  margin-bottom: -2px;
+  transition: background 0.2s, color 0.2s;
+}
+.tab-active {
+  background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+  color: #fff;
+  border-bottom: 2px solid #6366f1;
 }
 }
