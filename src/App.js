@@ -8,6 +8,8 @@ import Login from './Login';
 import { FaMoneyBillWave, FaSignOutAlt } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
 import axios from 'axios';
+const API_BASE = 'https://bekidtracker-1.onrender.com';
+
 function App() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -15,6 +17,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState('users');
+const [users, setUsers] = useState([]);
+const [reviews, setReviews] = useState([]);
   const rowsPerPage = 10;
 const [stats, setStats] = useState({
   totalUsers: 0,
@@ -43,9 +48,21 @@ const fetchStats = async () => {
   useEffect(() => {
     checkAuth();
     fetchStats();
+    
     // eslint-disable-next-line
   }, []);
-
+useEffect(() => {
+  if (activeTab === 'users') {
+    axios.get(`${API_BASE}/api/children/`, {
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+    }).then(res => setUsers(res.data));
+  }
+}, [activeTab]);
+useEffect(() => {
+  if (activeTab === 'reviews') {
+    axios.get(`${API_BASE}/api/evaluation/all`).then(res => setReviews(res.data));
+  }
+}, [activeTab]);
   const fetchTransactions = async () => {
     setLoading(true);
     try {
@@ -164,6 +181,11 @@ const fetchStats = async () => {
         margin: '0 auto',
         padding: '0 16px 32px 16px'
       }}>
+        <div style={{ display: 'flex', gap: 24, marginBottom: 24, justifyContent: 'center' }}>
+  <button className={activeTab === 'users' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('users')}>Người dùng</button>
+  <button className={activeTab === 'transactions' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('transactions')}>Giao dịch</button>
+  <button className={activeTab === 'reviews' ? 'tab-active' : 'tab'} onClick={() => setActiveTab('reviews')}>Đánh giá</button>
+</div>
         {/* Thống kê tổng quan */}
 <div style={{ display: 'flex', gap: 32, marginBottom: 32, justifyContent: 'center' }}>
   <div className="stat-card">
@@ -276,119 +298,151 @@ const fetchStats = async () => {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        {/* Bảng giao dịch */}
-        <div style={{
-          overflowX: 'auto',
-          background: '#fff',
-          borderRadius: 16,
-          boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-          padding: 20,
-          marginBottom: 32
-        }}>
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: 40 }}>
-              <ImSpinner2 size={48} className="spin" style={{ color: '#6366f1' }} />
-              <p style={{ fontSize: 20, color: '#64748b', marginTop: 16 }}>Đang tải dữ liệu...</p>
-            </div>
-          ) : (
-            <>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: 16
-              }}>
-                <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                  <tr style={{ background: '#f1f5f9' }}>
-                    <th style={thStyle}>STT</th>
-                    <th style={thStyle}>ID</th>
-                    <th style={thStyle}>User</th>
-                    <th style={thStyle}>Số tiền</th>
-                    <th style={thStyle}>Trạng thái</th>
-                    <th style={thStyle}>Ngày tạo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedTransactions.map((t, idx) => (
-                    <tr key={t._id || idx} style={{ transition: 'background 0.2s' }}
-                      onMouseOver={e => e.currentTarget.style.background = '#e0e7ff'}
-                      onMouseOut={e => e.currentTarget.style.background = ''}>
-                      <td style={tdStyle}>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
-                      <td style={tdStyle}>{t.transactionId || t._id || '-'}</td>
-                      <td style={tdStyle}>
-                        {t.userId
-                          ? (typeof t.userId === 'object'
-                              ? (t.userId.email || t.userId.fullname || t.userId._id || 'Không rõ')
-                              : t.userId)
-                          : 'Không rõ'}
-                      </td>
-                      <td style={tdStyle}>{t.amount ? t.amount.toLocaleString() : '-'}</td>
-                      <td style={tdStyle}>{t.status || '-'}</td>
-                      <td style={tdStyle}>{t.createdAt ? new Date(t.createdAt).toLocaleString() : '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {/* Pagination controls - đẹp, chuyên nghiệp */}
-              {totalPages > 1 && (
-                <div style={{ textAlign: 'center', marginTop: 20 }}>
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    style={{
-                      margin: '0 4px',
-                      padding: '8px 16px',
-                      borderRadius: '50%',
-                      border: 'none',
-                      background: currentPage === 1 ? '#e5e7eb' : '#6366f1',
-                      color: currentPage === 1 ? '#94a3b8' : '#fff',
-                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                      fontWeight: 700,
-                      fontSize: 16,
-                      transition: 'background 0.2s'
-                    }}
-                  >‹</button>
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => setCurrentPage(i + 1)}
-                      style={{
-                        margin: '0 4px',
-                        padding: '8px 16px',
-                        borderRadius: '50%',
-                        border: 'none',
-                        background: currentPage === i + 1 ? '#6366f1' : '#e0e7ff',
-                        color: currentPage === i + 1 ? '#fff' : '#6366f1',
-                        fontWeight: currentPage === i + 1 ? 700 : 500,
-                        fontSize: 16,
-                        cursor: 'pointer',
-                        boxShadow: currentPage === i + 1 ? '0 2px 8px rgba(99,102,241,0.15)' : 'none',
-                        transition: 'background 0.2s'
-                      }}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    style={{
-                      margin: '0 4px',
-                      padding: '8px 16px',
-                      borderRadius: '50%',
-                      border: 'none',
-                      background: currentPage === totalPages ? '#e5e7eb' : '#6366f1',
-                      color: currentPage === totalPages ? '#94a3b8' : '#fff',
-                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                      fontWeight: 700,
-                      fontSize: 16,
-                      transition: 'background 0.2s'
-                    }}
-                  >›</button>
-                </div>
-              )}
-            </>
-          )}
+       {/* Bảng dữ liệu theo tab */}
+<div style={{
+  overflowX: 'auto',
+  background: '#fff',
+  borderRadius: 16,
+  boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+  padding: 20,
+  marginBottom: 32
+}}>
+  {activeTab === 'users' && (
+    <table className="dashboard-table">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Họ tên</th>
+          <th>Email</th>
+          <th>Ngày tạo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.map((u, idx) => (
+          <tr key={u._id}>
+            <td>{idx + 1}</td>
+            <td>{u.fullname}</td>
+            <td>{u.email}</td>
+            <td>{u.createdAt ? new Date(u.createdAt).toLocaleString() : '-'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+  {activeTab === 'transactions' && (
+    <>
+      <table className="dashboard-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>ID</th>
+            <th>User</th>
+            <th>Số tiền</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedTransactions.map((t, idx) => (
+            <tr key={t._id || idx}>
+              <td>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
+              <td>{t.transactionId || t._id || '-'}</td>
+              <td>
+                {t.userId
+                  ? (typeof t.userId === 'object'
+                      ? (t.userId.email || t.userId.fullname || t.userId._id || 'Không rõ')
+                      : t.userId)
+                  : 'Không rõ'}
+              </td>
+              <td>{t.amount ? t.amount.toLocaleString() : '-'}</td>
+              <td>{t.status || '-'}</td>
+              <td>{t.createdAt ? new Date(t.createdAt).toLocaleString() : '-'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {totalPages > 1 && (
+        <div style={{ textAlign: 'center', marginTop: 20 }}>
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            style={{
+              margin: '0 4px',
+              padding: '8px 16px',
+              borderRadius: '50%',
+              border: 'none',
+              background: currentPage === 1 ? '#e5e7eb' : '#6366f1',
+              color: currentPage === 1 ? '#94a3b8' : '#fff',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              fontWeight: 700,
+              fontSize: 16,
+              transition: 'background 0.2s'
+            }}
+          >‹</button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              style={{
+                margin: '0 4px',
+                padding: '8px 16px',
+                borderRadius: '50%',
+                border: 'none',
+                background: currentPage === i + 1 ? '#6366f1' : '#e0e7ff',
+                color: currentPage === i + 1 ? '#fff' : '#6366f1',
+                fontWeight: currentPage === i + 1 ? 700 : 500,
+                fontSize: 16,
+                cursor: 'pointer',
+                boxShadow: currentPage === i + 1 ? '0 2px 8px rgba(99,102,241,0.15)' : 'none',
+                transition: 'background 0.2s'
+              }}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            style={{
+              margin: '0 4px',
+              padding: '8px 16px',
+              borderRadius: '50%',
+              border: 'none',
+              background: currentPage === totalPages ? '#e5e7eb' : '#6366f1',
+              color: currentPage === totalPages ? '#94a3b8' : '#fff',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              fontWeight: 700,
+              fontSize: 16,
+              transition: 'background 0.2s'
+            }}
+          >›</button>
         </div>
+      )}
+    </>
+  )}
+  {activeTab === 'reviews' && (
+    <table className="dashboard-table">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>User</th>
+          <th>Ngày</th>
+          <th>Nội dung</th>
+        </tr>
+      </thead>
+      <tbody>
+        {reviews.map((r, idx) => (
+          <tr key={r._id}>
+            <td>{idx + 1}</td>
+            <td>{r.user?.fullname || r.user?.email || '-'}</td>
+            <td>{r.date || '-'}</td>
+            <td>{r.content || '-'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+</div>
       </main>
     </div>
   );
