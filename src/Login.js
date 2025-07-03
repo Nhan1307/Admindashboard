@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_LOGIN = 'http://localhost:3000/auth/login';
+const API_LOGIN = 'https://bekidtracker-backend.onrender.com/auth/login';
 
 export default function Login({ onLogin }) {
     const [email, setEmail] = useState('');
