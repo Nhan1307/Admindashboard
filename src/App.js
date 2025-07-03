@@ -7,7 +7,7 @@ import { getAllTransactions } from './api';
 import Login from './Login';
 import { FaMoneyBillWave, FaSignOutAlt } from 'react-icons/fa';
 import { ImSpinner2 } from 'react-icons/im';
-
+import axios from 'axios';
 function App() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -16,7 +16,20 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-
+const [stats, setStats] = useState({
+  totalUsers: 0,
+  totalTransactions: 0,
+  totalEvaluations: 0,
+  revenue: 0
+});
+const fetchStats = async () => {
+  try {
+    const res = await axios.get('https://bekidtracker-1.onrender.com/api/admin/dashboard-stats');
+    setStats(res.data);
+  } catch (err) {
+    console.error('Lỗi khi lấy thống kê:', err);
+  }
+};
   const checkAuth = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
@@ -29,6 +42,7 @@ function App() {
 
   useEffect(() => {
     checkAuth();
+    fetchStats();
     // eslint-disable-next-line
   }, []);
 
@@ -150,6 +164,25 @@ function App() {
         margin: '0 auto',
         padding: '0 16px 32px 16px'
       }}>
+        {/* Thống kê tổng quan */}
+<div style={{ display: 'flex', gap: 32, marginBottom: 32, justifyContent: 'center' }}>
+  <div className="stat-card">
+    <h3 style={{ color: '#6366f1', marginBottom: 8 }}>Người dùng</h3>
+    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#22223b' }}>{stats.totalUsers}</p>
+  </div>
+  <div className="stat-card">
+    <h3 style={{ color: '#6366f1', marginBottom: 8 }}>Giao dịch</h3>
+    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#22223b' }}>{stats.totalTransactions}</p>
+  </div>
+  <div className="stat-card">
+    <h3 style={{ color: '#6366f1', marginBottom: 8 }}>Đánh giá</h3>
+    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#22223b' }}>{stats.totalEvaluations}</p>
+  </div>
+  <div className="stat-card">
+    <h3 style={{ color: '#6366f1', marginBottom: 8 }}>Doanh thu</h3>
+    <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#16a34a' }}>{stats.revenue.toLocaleString('vi-VN')} đ</p>
+  </div>
+</div>
         {/* Tổng doanh thu */}
         <div style={{
           marginBottom: 28,
